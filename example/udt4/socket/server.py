@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import socket as socklib
 import struct 
@@ -47,7 +48,7 @@ def accept_client():
     sock, host = udt4.accept(server)
     
     print(
-        'client found: %s' % host
+        'client found: %s %s' % host
         )
     
     

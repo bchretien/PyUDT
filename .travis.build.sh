@@ -9,7 +9,7 @@ install_dir="$root_dir/_travis/install"
 git_clone="git clone --quiet --recursive"
 
 # Create layout.
-rm -rf "$build_dir" "$install_dir"
+rm -rf "$install_dir"
 mkdir -p "$install_dir"
 mkdir -p "$install_dir/lib"
 mkdir -p "$install_dir/include/udt"

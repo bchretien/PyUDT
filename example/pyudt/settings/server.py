@@ -5,17 +5,14 @@ import udt4 as udt
 from   udt4 import pyudt 
 from   subprocess import Popen 
 
-
-
-
 def main(argv):
+    server = pyudt.UdtSocket()
+    server.bind( ('127.0.0.1', 3001) )
+    server.listen(100)
+
     Popen('./client.py %(host)s %(port)i' % { 
           'host' : '127.0.0.1', 'port': 3001 },
           shell = True) 
-
-    server = pyudt.UdtSocket() 
-    server.bind( ('127.0.0.1', 3001) )
-    server.listen(100) 
     
     client, host = server.accept()
     print('accepted:') 

@@ -8,5 +8,5 @@ then
     rm server 
 fi 
 
-g++ client.cc $LD_FLAGS -o client
-g++ server.cc $LD_FLAGS -o server 
+g++ client.cc $LD_FLAGS $CXXFLAGS -o client
+g++ server.cc $LD_FLAGS $CXXFLAGS -o server
