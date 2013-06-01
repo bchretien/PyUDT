@@ -20,8 +20,8 @@ export PYTHON_VERSION=`python -c 'import sys; print(sys.version[:3])'`
 # Setup environment variables.
 export LD_LIBRARY_PATH="$install_dir/lib:$LD_LIBRARY_PATH"
 export PKG_CONFIG_PATH="$install_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
-export CFLAGS="-I$install_dir/include/udt -L$install_dir/lib"
-export CXXFLAGS="-I$install_dir/include/udt -L$install_dir/lib"
+export CFLAGS="-I$install_dir/include -L$install_dir/lib"
+export CXXFLAGS="-I$install_dir/include -L$install_dir/lib"
 
 # Build package
 echo "Building UDT..."
@@ -32,7 +32,7 @@ cd ${root_dir}/udt/UDT4
 echo "Installing package files..."
 make -j1                               
 cp src/libudt.so ${install_dir}/lib/
-cp src/udt.h ${install_dir}/include/udt/udt
+cp src/udt.h ${install_dir}/include/udt/udt.h
 
 cd ../..
 
