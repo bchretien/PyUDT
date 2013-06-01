@@ -1,6 +1,8 @@
 PyUDT
 =====
 
+[![Build Status](https://travis-ci.org/PyUDT/PyUDT.png?branch=master)](https://travis-ci.org/PyUDT/PyUDT)
+
 # About  
 This extension is a C++ extension to CPython. And is tested on Linux only.
 
