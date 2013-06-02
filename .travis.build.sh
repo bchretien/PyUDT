@@ -27,7 +27,7 @@ export CXXFLAGS="-I$install_dir/include -L$install_dir/lib"
 echo "Building UDT..."
 
 # move library and headers to appropriate location 
-cd ${root_dir}/udt/UDT4
+cd ${root_dir}/udt/udt4
 
 echo "Installing package files..."
 make -j1                               
@@ -39,7 +39,8 @@ cd ../..
 echo "Calling setup.py..."
 python ${root_dir}/setup.py build
 echo "Installing PyUDT..."
-sudo python ${root_dir}/setup.py install --prefix="~/virtualenv/python$PYTHON_VERSION"
+sudo PYTHONPATH="/home/travis/virtualenv/python$PYTHON_VERSION/lib/python$PYTHON_VERSION/site-packages" \
+python ${root_dir}/setup.py install --prefix="~/virtualenv/python$PYTHON_VERSION"
 
 echo "Running tests..."
 cd example
