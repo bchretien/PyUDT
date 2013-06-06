@@ -22,6 +22,7 @@ export LD_LIBRARY_PATH="$install_dir/lib:$LD_LIBRARY_PATH"
 export PKG_CONFIG_PATH="$install_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
 export CFLAGS="-I$install_dir/include -L$install_dir/lib"
 export CXXFLAGS="-I$install_dir/include -L$install_dir/lib"
+export PYTHONPATH="~/virtualenv/python$PYTHON_VERSION/lib/python$PYTHON_VERSION/site-packages"
 
 # Build package
 echo "Building UDT..."
@@ -38,8 +39,7 @@ cd ../..
 
 echo "Calling setup.py..."
 python ${root_dir}/setup.py build
-echo "Installing PyUDT..."
-sudo PYTHONPATH="/home/travis/virtualenv/python$PYTHON_VERSION/lib/python$PYTHON_VERSION/site-packages" \
+echo "Installing PyUDT..." \
 python ${root_dir}/setup.py install --prefix="~/virtualenv/python$PYTHON_VERSION"
 
 echo "Running tests..."
