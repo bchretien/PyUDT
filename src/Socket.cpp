@@ -1,10 +1,10 @@
 #include "Socket.hh"
 
-#include "py-udt4.hh"
-
 #include <udt/udt.h>
 #include <string>
 #include <sstream>
+
+#include "Exception.hh"
 
 namespace pyudt4 {
 
@@ -19,6 +19,12 @@ Socket::Socket()
 
 Socket::~Socket()
 {
+    // Close socket on destruction
+    if (UDT::ERROR == UDT::close(descriptor_))
+    {
+	translateUDTError();
+	return;
+    }
 }
 
 const UDTSOCKET& Socket::getDescriptor() const

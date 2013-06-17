@@ -3,6 +3,7 @@
 
 #include <string>
 #include <exception>
+#include <boost/python.hpp>
 
 namespace pyudt4 {
 
@@ -23,6 +24,8 @@ private:
 };
 
 
+std::string parse_python_exception();
+void translatePythonException(const boost::python::error_already_set& e);
 void translateException(const Exception& e);
 void translateUDTError();
 

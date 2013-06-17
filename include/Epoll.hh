@@ -3,6 +3,8 @@
 
 #include "Socket.hh"
 
+namespace py = boost::python;
+
 namespace pyudt4 {
 
 class Epoll
@@ -32,7 +34,22 @@ public:
     /**
      * Add an UDT socket to the epoll.
      */
-    void add_usock(boost::python::object& args) throw();
+    void add_usock(py::object py_socket, py::object py_events) throw();
+
+    /**
+     * Remove an UDT socket from the epoll.
+     */
+    void remove_usock(py::object py_socket) throw();
+
+    /**
+     * Add a system socket to the epoll.
+     */
+    void add_ssock(py::object py_socket, py::object py_events) throw();
+
+    /**
+     * Remove a system socket from the epoll.
+     */
+    void remove_ssock(py::object py_socket) throw();
 
 private:
     /**

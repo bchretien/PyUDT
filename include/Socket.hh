@@ -8,6 +8,9 @@
 
 namespace pyudt4 {
 
+/**
+ * Class describing an UDT socket.
+ */
 class Socket
 {
 public:
