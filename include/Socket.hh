@@ -9,7 +9,7 @@
 namespace pyudt4 {
 
 /**
- * Class describing an UDT socket.
+ * Class describing a UDT socket.
  */
 class Socket
 {
@@ -31,7 +31,7 @@ public:
     const UDTSOCKET& getDescriptor() const;
 
     /**
-     * Set the socket domain.
+     * Set the socket descriptor.
      */
     void setDescriptor(UDTSOCKET descriptor);
 

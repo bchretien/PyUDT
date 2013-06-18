@@ -4,6 +4,7 @@
 #include <udt/udt.h>
 
 #include <boost/python.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace pyudt4 {
 
@@ -33,6 +34,7 @@ std::string Exception::getExtraData()
     return this->extraData_;
 }
 
+// See: http://thejosephturner.com/blog/2011/06/15/embedding-python-in-c-applications-with-boostpython-part-2/
 std::string parse_python_exception()
 {
     using namespace boost::python;
@@ -73,24 +75,21 @@ void translateException(const Exception& e)
     PyErr_SetString(PyExc_TypeError, e.what());
 }
 
-void translateUDTError()
+void translateUDTError() throw()
 {
-    do {
-        // FIXME: translate the error correctly
-        /*PyObject *__obj = PyTuple_New(2);
+    // Get the error message
+    long err_code = UDT::getlasterror().getErrorCode();
+    std::string err_msg = "[UDT error "
+                        + boost::lexical_cast<std::string>(err_code)
+                        + "] " + UDT::getlasterror().getErrorMessage();
 
-        PyTuple_SetItem(__obj, 0,
-                    PyInt_FromLong(UDT::getlasterror().getErrorCode()));
+    // Clear the error message from the error buffer
+    UDT::getlasterror().clear();
 
-        PyTuple_SetItem(__obj, 1,
-                PyString_FromString
-                (UDT::getlasterror().getErrorMessage()));
-
-        UDT::getlasterror().clear();*/
-        //PyErr_SetObject(pyudt4_exception_obj, __obj);
-
-        return;
-    } while (0);
+    // Raise an exception
+    Exception e(err_msg, "");
+    translateException(e);
+    throw e;
 }
 
 } // namespace pyudt4

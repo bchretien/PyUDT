@@ -27,7 +27,7 @@ private:
 std::string parse_python_exception();
 void translatePythonException(const boost::python::error_already_set& e);
 void translateException(const Exception& e);
-void translateUDTError();
+void translateUDTError() throw();
 
 } // namespace pyudt4
 
