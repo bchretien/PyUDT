@@ -15,12 +15,23 @@ Epoll::Epoll()
 {
     // Create the epoll
     id_ = UDT::epoll_create();
+
+    // Catch a possible error
+    if (id_ < 0)
+    {
+        translateUDTError();
+        return;
+    }
 }
 
 Epoll::~Epoll()
 {
     // Release the epoll
-    UDT::epoll_release(id_);
+    if (UDT::epoll_release(id_) < 0)
+    {
+        translateUDTError();
+        return;
+    }
 }
 
 const int& Epoll::getId() const

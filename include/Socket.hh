@@ -9,7 +9,7 @@
 namespace pyudt4 {
 
 /**
- * Class describing a UDT socket.
+ * C++ wrapper for a UDT socket.
  */
 class Socket
 {
@@ -21,12 +21,17 @@ public:
     Socket();
 
     /**
+     * Construct socket object from an existing UDT socket descriptor.
+     */
+    Socket(UDTSOCKET descriptor, bool close_on_delete = true);
+
+    /**
      * Destructor.
      */
     ~Socket();
 
     /**
-     * Return the descriptor of the socket.
+     * Return the socket descriptor.
      */
     const UDTSOCKET& getDescriptor() const;
 
@@ -36,14 +41,14 @@ public:
     void setDescriptor(UDTSOCKET descriptor);
 
     /**
-     * Return the domain of the socket.
+     * Return the address family of the socket.
      */
-    const int& getDomain() const;
+    const int& getAddressFamily() const;
 
     /**
-     * Set the socket domain.
+     * Set the address family domain: UDT::AF_INET or UDT::AF_INET6.
      */
-    void setDomain(int domain);
+    void setAddressFamily(int addr_family);
 
     /**
      * Return the type of the socket.
@@ -51,7 +56,7 @@ public:
     const int& getType() const;
 
     /**
-     * Set the socket type.
+     * Set the socket type: UDT::SOCK_STREAM or UDT::SOCK_DGRAM.
      */
     void setType(int type);
 
@@ -66,14 +71,14 @@ public:
     void setProtocol(int protocol);
 
     /**
-     * Return whether the socket is valid.
+     * Get whether the socket should be closed when destructor is called.
      */
-    const int& getIsValid() const;
+    const bool& getCloseOnDelete() const;
 
     /**
-     * Set whether the socket is valid.
+     * Set whether the socket should be closed when destructor is called.
      */
-    void setIsValid(int is_valid);
+    void setCloseOnDelete(bool close_on_delete);
 
     /**
      * Put the socket's information in a string.
@@ -87,24 +92,24 @@ private:
     UDTSOCKET descriptor_;
 
     /**
-     * UDT socket family.
+     * IP address family: UDT::AF_INET or UDT::AF_INET6.
      */
-    int domain_;
+    int addr_family_;
 
     /**
-     * UDT socket type.
+     * Type of the socket: UDT::SOCK_STREAM or UDT::SOCK_DGRAM.
      */
     int type_;
 
     /**
-     * UDT socket protocol.
+     * Protocol to be used.
      */
     int protocol_;
 
     /**
-     * Whether the UDT socket is valid.
+     * Whether to close the socket when the destructor is called.
      */
-    int is_valid_;
+    bool close_on_delete_;
 };
 
 } // namespace pyudt4
