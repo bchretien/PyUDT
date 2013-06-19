@@ -24,6 +24,7 @@ Epoll::Epoll()
     }
 }
 
+
 Epoll::~Epoll()
 {
     // Release the epoll
@@ -34,15 +35,51 @@ Epoll::~Epoll()
     }
 }
 
+
 const int& Epoll::getId() const
 {
     return id_;
 }
 
+
 void Epoll::setId(int id)
 {
     id_ = id;
 }
+
+
+void Epoll::add_usock(py::object py_socket) throw()
+{
+    try
+    {
+        Socket* socket;
+
+        try
+        {
+            socket = py::extract<Socket*>(py_socket);
+        }
+        catch (...)
+        {
+            Exception e("Wrong arguments: Epoll::add_usock((Socket)s)", "");
+            translateException(e);
+            throw e;
+        }
+
+        objmap_[socket->getDescriptor()] = socket;
+
+        if (UDT::ERROR == UDT::epoll_add_usock(id_, socket->getDescriptor()))
+        {
+            translateUDTError();
+            return;
+        }
+    }
+    catch (py::error_already_set& err)
+    {
+        std::cerr << parse_python_exception() << std::endl;
+        throw err;
+    }
+}
+
 
 void Epoll::add_usock(py::object py_socket, py::object py_flags) throw()
 {
@@ -78,6 +115,7 @@ void Epoll::add_usock(py::object py_socket, py::object py_flags) throw()
     }
 }
 
+
 void Epoll::remove_usock(py::object py_socket) throw()
 {
     try
@@ -109,6 +147,39 @@ void Epoll::remove_usock(py::object py_socket) throw()
         throw err;
     }
 }
+
+
+void Epoll::add_ssock(py::object py_socket) throw()
+{
+    try
+    {
+        // file descriptor of a system socket
+        SYSSOCKET socket;
+
+        try
+        {
+            socket = py::extract<SYSSOCKET>(py_socket);
+        }
+        catch (...)
+        {
+            Exception e("Wrong arguments: Epoll::add_ssock((SYSSOCKET)s)", "");
+            translateException(e);
+            throw e;
+        }
+
+        if (UDT::ERROR == UDT::epoll_add_ssock(id_, socket))
+        {
+            translateUDTError();
+            return;
+        }
+    }
+    catch (py::error_already_set& err)
+    {
+        std::cerr << parse_python_exception() << std::endl;
+        throw err;
+    }
+}
+
 
 void Epoll::add_ssock(py::object py_socket, py::object py_flags) throw()
 {
@@ -143,6 +214,7 @@ void Epoll::add_ssock(py::object py_socket, py::object py_flags) throw()
     }
 }
 
+
 void Epoll::remove_ssock(py::object py_socket) throw()
 {
     try
@@ -170,6 +242,32 @@ void Epoll::remove_ssock(py::object py_socket) throw()
     {
         std::cerr << parse_python_exception() << std::endl;
         throw err;
+    }
+}
+
+void Epoll::garbage_collect() throw()
+{
+    std::map<UDTSOCKET, Socket*>::iterator iter;
+    UDTSTATUS status;
+
+    for (iter = objmap_.begin();
+         iter != objmap_.end();
+         ++iter)
+    {
+        status = UDT::getsockstate(iter->first);
+        if (  status == BROKEN
+           || status == CLOSED
+           || status == NONEXIST)
+        {
+            // Remove the UDT socket from the epoll
+            UDT::epoll_remove_usock(id_, iter->first);
+
+            // Destroy the socket
+            delete iter->second;
+
+            // Remove the socket from the map
+            objmap_.erase(iter);
+        }
     }
 }
 

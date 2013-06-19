@@ -9,6 +9,8 @@ using namespace pyudt4;
 
 BOOST_PYTHON_MODULE(pyudt)
 {
+    // SOCKET
+
     class_<Socket>("Socket", init<>())
     .def(init<UDTSOCKET,bool>())
     .def("descriptor", &Socket::setDescriptor)
@@ -24,14 +26,27 @@ BOOST_PYTHON_MODULE(pyudt)
     .def("__str__", &Socket::str)
     ;
 
+    // EPOLL
+
+    // Member function pointer variables
+    void (Epoll::*add_usock)      (object)         = &Epoll::add_usock;
+    void (Epoll::*add_usock_flags)(object, object) = &Epoll::add_usock;
+    void (Epoll::*add_ssock)      (object)         = &Epoll::add_ssock;
+    void (Epoll::*add_ssock_flags)(object, object) = &Epoll::add_ssock;
+
     class_<Epoll>("Epoll")
     .def("id", &Epoll::setId)
     .def("id", &Epoll::getId, return_value_policy<copy_const_reference>())
-    .def("add_usock", &Epoll::add_usock)
-    .def("add_ssock", &Epoll::add_ssock)
+    .def("add_ssock", add_ssock)
+    .def("add_ssock", add_ssock_flags)
+    .def("add_usock", add_usock)
+    .def("add_usock", add_usock_flags)
     .def("remove_usock", &Epoll::remove_usock)
     .def("remove_ssock", &Epoll::remove_ssock)
+    .def("garbage_collect", &Epoll::garbage_collect)
     ;
+
+    // EXCEPTION
 
     register_exception_translator<Exception>(translateException);
 }

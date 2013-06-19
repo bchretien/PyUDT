@@ -34,6 +34,7 @@ public:
     /**
      * Add an UDT socket to the epoll.
      */
+    void add_usock(py::object py_socket) throw();
     void add_usock(py::object py_socket, py::object py_events) throw();
 
     /**
@@ -44,12 +45,18 @@ public:
     /**
      * Add a system socket to the epoll.
      */
+    void add_ssock(py::object py_socket) throw();
     void add_ssock(py::object py_socket, py::object py_events) throw();
 
     /**
      * Remove a system socket from the epoll.
      */
     void remove_ssock(py::object py_socket) throw();
+
+    /**
+     * Garbage collect the sockets of the epoll. This may not be needed.
+     */
+     void garbage_collect() throw ();
 
 private:
     /**
