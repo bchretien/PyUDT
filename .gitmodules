@@ -1,3 +1,6 @@
 [submodule "udt"]
 	path = udt
 	url = git://git.code.sf.net/p/udt/git
+[submodule "cmake"]
+	path = cmake
+	url = git://github.com/jrl-umi3218/jrl-cmakemodules.git

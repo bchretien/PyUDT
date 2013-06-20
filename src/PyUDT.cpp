@@ -3,6 +3,7 @@
 #include "Epoll.hh"
 #include "Socket.hh"
 #include "Exception.hh"
+#include "Debug.hh"
 
 using namespace boost::python;
 using namespace pyudt4;
@@ -49,4 +50,12 @@ BOOST_PYTHON_MODULE(pyudt)
     // EXCEPTION
 
     register_exception_translator<Exception>(translateException);
+
+    // LOGGER
+    class_<Logger>("Logger")
+    .def("init_logger", &Logger::init_logger)
+    .staticmethod("init_logger")
+    .def("load_logger_configuration", &Logger::load_logger_configuration)
+    .staticmethod("load_logger_configuration")
+     ;
 }

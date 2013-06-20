@@ -4,8 +4,8 @@
 #include <iostream>
 #include <boost/python.hpp>
 
-#include "py-udt4.hh"
 #include "Exception.hh"
+#include "Debug.hh"
 
 namespace py = boost::python;
 
@@ -15,6 +15,8 @@ Epoll::Epoll()
 {
     // Create the epoll
     id_ = UDT::epoll_create();
+
+    PYUDT_LOG_TRACE("Created epoll " << id_);
 
     // Catch a possible error
     if (id_ < 0)
@@ -33,6 +35,8 @@ Epoll::~Epoll()
         translateUDTError();
         return;
     }
+
+    PYUDT_LOG_TRACE("Released epoll " << id_);
 }
 
 
@@ -50,10 +54,10 @@ void Epoll::setId(int id)
 
 void Epoll::add_usock(py::object py_socket) throw()
 {
+    Socket* socket;
+
     try
     {
-        Socket* socket;
-
         try
         {
             socket = py::extract<Socket*>(py_socket);
@@ -78,16 +82,20 @@ void Epoll::add_usock(py::object py_socket) throw()
         std::cerr << parse_python_exception() << std::endl;
         throw err;
     }
+
+    PYUDT_LOG_TRACE("Added UDT socket "
+                    << socket->getDescriptor()
+                    << " to epoll " << id_);
 }
 
 
 void Epoll::add_usock(py::object py_socket, py::object py_flags) throw()
 {
+    Socket* socket;
+    int flags;
+
     try
     {
-        Socket* socket;
-        int flags;
-
         try
         {
             socket = py::extract<Socket*>(py_socket);
@@ -113,15 +121,19 @@ void Epoll::add_usock(py::object py_socket, py::object py_flags) throw()
         std::cerr << parse_python_exception() << std::endl;
         throw err;
     }
+
+    PYUDT_LOG_TRACE("Added UDT socket "
+                    << socket->getDescriptor()
+                    << " to epoll " << id_);
 }
 
 
 void Epoll::remove_usock(py::object py_socket) throw()
 {
+    Socket* socket;
+
     try
     {
-        Socket* socket;
-
         try
         {
             socket = py::extract<Socket*>(py_socket);
@@ -146,16 +158,20 @@ void Epoll::remove_usock(py::object py_socket) throw()
         std::cerr << parse_python_exception() << std::endl;
         throw err;
     }
+
+    PYUDT_LOG_TRACE("Removed UDT socket "
+                    << socket->getDescriptor()
+                    << " from epoll " << id_);
 }
 
 
 void Epoll::add_ssock(py::object py_socket) throw()
 {
+    // file descriptor of a system socket
+    SYSSOCKET socket;
+
     try
     {
-        // file descriptor of a system socket
-        SYSSOCKET socket;
-
         try
         {
             socket = py::extract<SYSSOCKET>(py_socket);
@@ -178,17 +194,21 @@ void Epoll::add_ssock(py::object py_socket) throw()
         std::cerr << parse_python_exception() << std::endl;
         throw err;
     }
+
+    PYUDT_LOG_TRACE("Added system socket "
+                    << socket
+                    << " to epoll " << id_);
 }
 
 
 void Epoll::add_ssock(py::object py_socket, py::object py_flags) throw()
 {
+    // file descriptor of a system socket
+    SYSSOCKET socket;
+    int flags;
+
     try
     {
-        // file descriptor of a system socket
-        SYSSOCKET socket;
-        int flags;
-
         try
         {
             socket = py::extract<SYSSOCKET>(py_socket);
@@ -212,15 +232,19 @@ void Epoll::add_ssock(py::object py_socket, py::object py_flags) throw()
         std::cerr << parse_python_exception() << std::endl;
         throw err;
     }
+
+    PYUDT_LOG_TRACE("Added system socket "
+                    << socket
+                    << " to epoll " << id_);
 }
 
 
 void Epoll::remove_ssock(py::object py_socket) throw()
 {
+    SYSSOCKET socket;
+
     try
     {
-        SYSSOCKET socket;
-
         try
         {
             socket = py::extract<SYSSOCKET>(py_socket);
@@ -243,6 +267,10 @@ void Epoll::remove_ssock(py::object py_socket) throw()
         std::cerr << parse_python_exception() << std::endl;
         throw err;
     }
+
+    PYUDT_LOG_TRACE("Removed system socket "
+                    << socket
+                    << " from epoll " << id_);
 }
 
 void Epoll::garbage_collect() throw()
@@ -269,6 +297,8 @@ void Epoll::garbage_collect() throw()
             objmap_.erase(iter);
         }
     }
+
+    PYUDT_LOG_TRACE("Garbage collection done for epoll " << id_);
 }
 
 } // namespace pyudt4

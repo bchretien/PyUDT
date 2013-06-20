@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "Exception.hh"
+#include "Debug.hh"
 
 namespace pyudt4 {
 
@@ -25,6 +26,8 @@ Socket::Socket()
         return;
     }
 
+    PYUDT_LOG_TRACE("Created UDT socket " << descriptor_);
+
     // TODO: set default socket options
 }
 
@@ -37,6 +40,8 @@ Socket::Socket(UDTSOCKET descriptor, bool close_on_delete)
 {
     // TODO: find a way to get the address family, type and protocol from an
     //       existing UDT socket.
+
+    PYUDT_LOG_TRACE("Create Socket object from existing socket " << descriptor_);
 }
 
 Socket::~Socket()
@@ -45,11 +50,16 @@ Socket::~Socket()
 
     // Close socket on destruction
     if (close_on_delete_)
+    {
         if (UDT::ERROR == UDT::close(descriptor_))
         {
             translateUDTError();
             return;
         }
+        else PYUDT_LOG_TRACE("Closed UDT socket " << descriptor_);
+    }
+
+    PYUDT_LOG_TRACE("Destroyed UDT socket " << descriptor_);
 }
 
 const UDTSOCKET& Socket::getDescriptor() const
