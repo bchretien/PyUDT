@@ -19,6 +19,9 @@ namespace pyudt4 {
 // Logger instance named "pyudt".
 static log4cxx::LoggerPtr logger(log4cxx::Logger::getLogger("pyudt"));
 
+/**
+ * Simple logger class to facilitate logging with Log4CXX.
+ */
 class Logger
 {
 public:

@@ -7,6 +7,9 @@
 
 namespace pyudt4 {
 
+/**
+ * A basic exception class for this project. May modifed/removed later on.
+ */
 class Exception : public std::exception
 {
 public:

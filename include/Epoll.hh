@@ -7,6 +7,9 @@ namespace py = boost::python;
 
 namespace pyudt4 {
 
+/**
+ * Wrapper for UDT accesses to epolls.
+ */
 class Epoll
 {
 public:
@@ -23,33 +26,39 @@ public:
 
     /**
      * Get the id of the epoll.
+     * @return id of the epoll.
      */
     const int& getId() const;
 
     /**
      * Set the id of the epoll.
+     * @param id id of the epoll
      */
-    void setId(int);
+    void setId(int id);
 
     /**
      * Add an UDT socket to the epoll.
+     * @param py_socket socket to add.
      */
     void add_usock(py::object py_socket) throw();
     void add_usock(py::object py_socket, py::object py_events) throw();
 
     /**
      * Remove an UDT socket from the epoll.
+     * @param py_socket socket to remove.
      */
     void remove_usock(py::object py_socket) throw();
 
     /**
      * Add a system socket to the epoll.
+     * @param py_socket socket to add.
      */
     void add_ssock(py::object py_socket) throw();
     void add_ssock(py::object py_socket, py::object py_events) throw();
 
     /**
      * Remove a system socket from the epoll.
+     * @param py_socket socket to remove.
      */
     void remove_ssock(py::object py_socket) throw();
 
@@ -60,7 +69,7 @@ public:
 
 private:
     /**
-     * Epoll id
+     * Epoll id.
      */
     int id_;
 

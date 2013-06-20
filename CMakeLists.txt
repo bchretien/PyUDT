@@ -34,6 +34,8 @@ INCLUDE_DIRECTORIES(
 INCLUDE(src/SourcesLib.cmake)
 INCLUDE(include/SourcesLib.cmake)
 
+SETUP_PROJECT()
+
 # Create Python module
 PYTHON_ADD_MODULE(pyudt ${PYUDT_SOURCE} ${PYUDT_HEADERS})
 PKG_CONFIG_USE_DEPENDENCY(pyudt liblog4cxx)
@@ -44,3 +46,5 @@ ENABLE_TESTING()
 
 #FILE(COPY test/test_udt4/test_bindings.py DESTINATION .)
 ADD_TEST(test_bindings test_bindings.py)
+
+SETUP_PROJECT_FINALIZE()
