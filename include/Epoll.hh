@@ -3,6 +3,8 @@
 
 #include "Socket.hh"
 
+#include <set>
+
 namespace py = boost::python;
 
 namespace pyudt4 {
@@ -67,6 +69,27 @@ public:
      */
      void garbage_collect() throw ();
 
+    /**
+     * Wait for an epoll event. A timeout can be set.
+     * @param ms_timeout The time that this epoll should wait for the status
+     * change in the input groups, in milliseconds.
+     * @param do_uread whether to wait for UDT sockets reads. Default is true.
+     * @param do_uwrite whether to wait for UDT sockets writes. Default is true.
+     * @param do_sread whether to wait for system sockets reads. Default is
+     *        false.
+     * @param do_swrite whether to wait for system sockets writes. Default is
+     *        false.
+     * @return total number of UDT sockets and system sockets ready for IO.
+     *
+     * According to UDT's documentation:
+     * "Negative timeout value will make the function to wait until an event
+     * happens. If the timeout value is 0, then the function returns immediately
+     * with any sockets associated an IO event. If timeout occurs before any
+     * event happens, the function returns 0."
+     */
+    int wait(int64_t ms_timeout, bool do_uread = true, bool do_uwrite = true,
+             bool do_sread = false, bool do_swrite = false) throw ();
+
 private:
     /**
      * Epoll id.
@@ -77,6 +100,26 @@ private:
      * UDTSOCKET --> PyUDT socket map
      */
     std::map<UDTSOCKET, Socket*> objmap_;
+
+    /**
+     * Set of UDT sockets available for reading.
+     */
+    std::set<UDTSOCKET> read_udt_;
+
+    /**
+     * Set of UDT sockets available for writing.
+     */
+    std::set<UDTSOCKET> write_udt_;
+
+    /**
+     * Set of system sockets that are ready to read.
+     */
+    std::set<SYSSOCKET> read_sys_;
+
+    /**
+     * Set of system sockets that are read to write, or are broken.
+     */
+    std::set<SYSSOCKET> write_sys_;
 };
 
 } // namespace pyudt4

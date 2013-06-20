@@ -6,6 +6,8 @@
 #include <boost/python.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "Debug.hh"
+
 namespace pyudt4 {
 
 Exception::Exception(std::string message,
@@ -85,6 +87,9 @@ void translateUDTError() throw()
 
     // Clear the error message from the error buffer
     UDT::getlasterror().clear();
+
+    // Log the error
+    PYUDT_LOG_ERROR(err_msg);
 
     // Raise an exception
     Exception e(err_msg, "");

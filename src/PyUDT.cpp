@@ -8,6 +8,9 @@
 using namespace boost::python;
 using namespace pyudt4;
 
+// Member function overloads
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(epoll_wait, Epoll::wait, 1, 5)
+
 BOOST_PYTHON_MODULE(pyudt)
 {
     // SOCKET
@@ -45,6 +48,10 @@ BOOST_PYTHON_MODULE(pyudt)
     .def("remove_usock", &Epoll::remove_usock)
     .def("remove_ssock", &Epoll::remove_ssock)
     .def("garbage_collect", &Epoll::garbage_collect)
+    .def("wait", &Epoll::wait,
+         epoll_wait(args("ms_timeout", "do_uread", "do_uwrite",
+                                       "do_sread", "do_swrite"),
+                    "Wait for an epoll event. A timeout can be set."))
     ;
 
     // EXCEPTION

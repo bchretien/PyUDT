@@ -2,6 +2,7 @@
 
 #include <udt/udt.h>
 #include <iostream>
+#include <set>
 #include <boost/python.hpp>
 
 #include "Exception.hh"
@@ -299,6 +300,30 @@ void Epoll::garbage_collect() throw()
     }
 
     PYUDT_LOG_TRACE("Garbage collection done for epoll " << id_);
+}
+
+int Epoll::wait(int64_t ms_timeout,
+                bool do_uread, bool do_uwrite,
+                bool do_sread, bool do_swrite) throw ()
+{
+    int res = UDT::epoll_wait(id_,
+                             (do_uread)? &read_udt_:0x0,
+                             (do_uwrite)? &write_udt_:0x0,
+                             ms_timeout,
+                             (do_sread)? &read_sys_:0x0,
+                             (do_swrite)? &write_sys_:0x0);
+
+    if (res == UDT::ERROR)
+    {
+        if (UDT::getlasterror().getErrorCode() == CUDTException::ETIMEOUT)
+            res = 0;
+        else translateUDTError();
+    }
+
+    PYUDT_LOG_TRACE("Number of UDT/system sockets ready for IO in epoll "
+                    << id_ << ": " << res);
+
+    return res;
 }
 
 } // namespace pyudt4
