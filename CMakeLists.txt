@@ -4,6 +4,9 @@ SET(PROJECT_NAME pyudt)
 SET(PROJECT_DESCRIPTION "PyUDT")
 SET(PROJECT_URL "http://github.com/pyudt/pyudt")
 
+# Using C++11
+LIST(APPEND CMAKE_CXX_FLAGS "-std=c++0x")
+
 INCLUDE(cmake/base.cmake)
 INCLUDE(cmake/boost.cmake)
 INCLUDE(cmake/python.cmake)

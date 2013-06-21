@@ -6,6 +6,8 @@
 #include <udt/udt.h>
 #include <map>
 
+namespace py = boost::python;
+
 namespace pyudt4 {
 
 /**
@@ -84,6 +86,75 @@ public:
      * Put the socket's information in a string.
      */
     std::string str() const;
+
+    /**
+     * Read a certain amount of data into a local memory buffer.
+     * @param buf memory buffer used to store the received data.
+     * @param buf_len length of the buffer.
+     */
+    void recv(char* buf, int buf_len) const throw();
+
+    /**
+     * Read a certain amount of data into a local memory buffer.
+     * @param buf_len length of the buffer.
+     * @return Python object containing the received data.
+     */
+    py::str recv(int buf_len) const throw();
+
+    /**
+     * Send a certain amount of data from an application buffer.
+     * @param buf buffer of data to be sent.
+     * @param buf_len length of the data to send.
+     */
+    void send(const char* buf, int buf_len) const throw();
+
+    /**
+     * Send a certain amount of data from an application buffer.
+     * @param py_data Python object contained the buffer of the data to be sent.
+     */
+    void send(boost::python::object py_data) const throw();
+
+    /**
+     * Bind a UDT socket to a known or an available local address.
+     * @param ip IP address.
+     * @param port port.
+     */
+    void bind(const char* ip, uint16_t port) throw();
+
+    /**
+     * Bind to an existing UDP socket.
+     * @param udp_socket UDP socket to bind to.
+     */
+    void bind_to_udp(SYSSOCKET udp_socket) throw();
+
+    /**
+     * Enable a server UDT entity to wait for clients to connect.
+     * @param backlog maximum number of pending connections.
+     */
+    void listen(unsigned int backlog) throw();
+
+    /**
+     * Connect to a server socket (in regular mode) or a peer socket
+     * (in rendez-vous mode) to set up a UDT connection.
+     */
+    void connect(const char* ip, uint16_t port) throw();
+
+    /**
+     * Retrieve an incoming connection.
+     * @return socket of the incoming connection.
+     */
+    Socket* accept() throw();
+
+private:
+    /**
+     * Build the structure containing the socket IP address, port, address
+     * family etc.
+     * @param ip IP address.
+     * @param port port.
+     * @param family address family (AF_INET or AF_INET6).
+     */
+    sockaddr_in build_sockaddr_in(const char* ip, uint16_t port,
+                                  short family = AF_INET);
 
 private:
     /**

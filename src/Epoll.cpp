@@ -307,11 +307,11 @@ int Epoll::wait(int64_t ms_timeout,
                 bool do_sread, bool do_swrite) throw ()
 {
     int res = UDT::epoll_wait(id_,
-                             (do_uread)? &read_udt_:0x0,
-                             (do_uwrite)? &write_udt_:0x0,
+                             (do_uread)? &read_udt_:nullptr,
+                             (do_uwrite)? &write_udt_:nullptr,
                              ms_timeout,
-                             (do_sread)? &read_sys_:0x0,
-                             (do_swrite)? &write_sys_:0x0);
+                             (do_sread)? &read_sys_:nullptr,
+                             (do_swrite)? &write_sys_:nullptr);
 
     if (res == UDT::ERROR)
     {
