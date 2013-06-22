@@ -55,13 +55,13 @@ public:
      expression))
 
 #define PYUDT_LOG_INFO(expression)        \
-    PYUDT_DEBUG_ONLY(LOG4CXX_INFO         \
+     LOG4CXX_INFO                         \
     (log4cxx::Logger::getLogger("pyudt"), \
-     expression))
+     expression)
 
 #define PYUDT_LOG_ERROR(expression)       \
-    PYUDT_DEBUG_ONLY(LOG4CXX_ERROR        \
+     LOG4CXX_ERROR                        \
     (log4cxx::Logger::getLogger("pyudt"), \
-     expression))
+     expression)
 
 #endif // __PYUDT_DEBUG_HH_

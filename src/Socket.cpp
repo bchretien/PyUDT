@@ -174,7 +174,10 @@ void Socket::close()
             translateUDTError();
             return;
         }
-        else PYUDT_LOG_TRACE("Closed UDT socket " << descriptor_);
+        else
+        {
+            PYUDT_LOG_TRACE("Closed UDT socket " << descriptor_);
+        }
 
         is_alive_ = false;
     }
@@ -279,7 +282,7 @@ void Socket::recv(char* buf, int buf_len) const throw()
     }
 
     PYUDT_LOG_TRACE("Received " << buf_len << " byte(s) from socket "
-                    << descriptor_ << " that were stored in "
+                    << descriptor_ << " that are stored in "
                     << static_cast<void *>(&buf));
 }
 
@@ -311,7 +314,7 @@ py::str Socket::recv(int buf_len) const throw()
     free(buf);
 
     PYUDT_LOG_TRACE("Received " << buf_len << " byte(s) from socket "
-                    << descriptor_ << " that were stored in "
+                    << descriptor_ << " that are stored in "
                     << static_cast<void *>(&buf));
 
     return py_buf;

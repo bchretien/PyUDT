@@ -15,14 +15,10 @@ def threaded_client():
     # Create a UDT socket to simulate a client
     s_client = pyudt.Socket()
     s_client.connect('127.0.0.1',4444)
-    print s_client
 
     # Send data to the server
-    print 'Sending message: ' + str(test_data) + '\n'
+    print 'Sending message: ' + str(test_data)
     s_client.send(test_data, test_data_len)
-
-    # Wait a bit
-    time.sleep(10)
 
     # Close sockets
     s_client.close()
@@ -33,15 +29,12 @@ def threaded_server():
     s_server = pyudt.Socket()
     s_server.bind('127.0.0.1', 4444)
     s_server.listen(100)
-    print s_server
 
     # Create an epoll
     e = pyudt.Epoll()
 
     # Accept incoming connections
     client,addr_ip,addr_port = s_server.accept()
-    print client
-    print str(addr_ip) + ":" + str(addr_port)
 
     # Add the client sockets to the epoll
     e.add_usock(client, pyudt.UDT_EPOLL_IN)
@@ -51,9 +44,7 @@ def threaded_server():
 
     # Receive data from the client
     test_data_rcv = client.recv(test_data_len)
-    print 'Received message: ' + str(test_data_rcv) + '\n'
-
-    time.sleep(10)
+    print 'Received message: ' + str(test_data_rcv[0:test_data_len])
 
     # Garbage collect closed/broken sockets
     #e.garbage_collect()
@@ -75,10 +66,12 @@ pyudt.startup()
 # Launch server and client threads
 t_server = Thread(target = threaded_server, args = ())
 t_client = Thread(target = threaded_client, args = ())
+
 t_server.start()
 t_client.start()
-t_server.join()
+
 t_client.join()
+t_server.join()
 
 # Cleanup UDT
 pyudt.cleanup()

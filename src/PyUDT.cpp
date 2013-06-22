@@ -66,9 +66,13 @@ static void signal_handler(int sig)
 static void handle_signals()
 {
     if (signal(SIGINT, signal_handler) == SIG_ERR)
+    {
         PYUDT_LOG_ERROR("Cannot catch SIGINT.");
+    }
     if (signal(SIGTERM, signal_handler) == SIG_ERR)
+    {
         PYUDT_LOG_ERROR("Cannot catch SIGTERM.");
+    }
 
     PYUDT_LOG_TRACE("Signal handler set.");
 }
@@ -155,7 +159,6 @@ BOOST_PYTHON_MODULE(pyudt)
     // CONVERTERS
 
     to_python<boost::tuple<Socket_ptr,const char*, uint16_t> >();
-    to_python<Socket_ptr>();
 
     // SOCKET
 
