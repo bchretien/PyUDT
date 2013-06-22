@@ -2,13 +2,21 @@
 #define __PYUDT_SOCKET_HH_
 
 #include <boost/python.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <string>
 #include <udt/udt.h>
 #include <map>
+#include <memory> // std::shared_ptr
 
 namespace py = boost::python;
 
 namespace pyudt4 {
+
+// Forward declarations
+class Socket;
+
+// For simplicity
+typedef std::shared_ptr<Socket> Socket_ptr;
 
 /**
  * C++ wrapper for a UDT socket.
@@ -24,13 +32,21 @@ public:
 
     /**
      * Construct socket object from an existing UDT socket descriptor.
+     * @param descriptor descriptor of the UDT socket.
+     * @param close_on_delete whether to close the socket when object is
+     * destroyed. Default = false.
      */
-    Socket(UDTSOCKET descriptor, bool close_on_delete = true);
+    Socket(UDTSOCKET descriptor, bool close_on_delete = false);
 
     /**
      * Destructor.
      */
     ~Socket();
+
+    /**
+     * Close the UDT socket.
+     */
+    void close();
 
     /**
      * Return the socket descriptor.
@@ -109,6 +125,12 @@ public:
     void send(const char* buf, int buf_len) const throw();
 
     /**
+     * Send a string.
+     * @param str string to send.
+     */
+    void send(std::string str) const throw();
+
+    /**
      * Send a certain amount of data from an application buffer.
      * @param py_data Python object contained the buffer of the data to be sent.
      */
@@ -141,9 +163,10 @@ public:
 
     /**
      * Retrieve an incoming connection.
-     * @return socket of the incoming connection.
+     * @return a tuple containing the socket of the incoming connection and its
+     *  associated address/port.
      */
-    Socket* accept() throw();
+    boost::tuple<Socket_ptr,const char*,uint16_t> accept() throw();
 
 private:
     /**
@@ -181,6 +204,11 @@ private:
      * Whether to close the socket when the destructor is called.
      */
     bool close_on_delete_;
+
+    /**
+     * Whether the socket is alive.
+     */
+    bool is_alive_;
 };
 
 } // namespace pyudt4

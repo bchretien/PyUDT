@@ -4,6 +4,9 @@
 #include <string>
 #include <sstream>
 #include <arpa/inet.h> // inet_pton
+#include <netdb.h> // getnameinfo
+#include <boost/tuple/tuple.hpp>
+#include <memory> // std::shared_ptr
 
 #include "Exception.hh"
 #include "Debug.hh"
@@ -11,6 +14,38 @@
 namespace py = boost::python;
 
 namespace pyudt4 {
+
+namespace detail {
+
+static
+std::string af_to_string(int af)
+{
+    switch(af)
+    {
+    case AF_INET:
+        return "AF_INET";
+    case AF_INET6:
+        return "AF_INET6";
+    default:
+        return "Unknown";
+    }
+}
+
+static
+std::string type_to_string(int type)
+{
+    switch(type)
+    {
+    case SOCK_STREAM:
+        return "SOCK_STREAM";
+    case SOCK_DGRAM:
+        return "DGRAM";
+    default:
+        return "Unknown";
+    }
+}
+
+} // namespace detail
 
 sockaddr_in Socket::build_sockaddr_in(const char* ip, uint16_t port,
                               short family)
@@ -45,7 +80,8 @@ Socket::Socket()
   addr_family_(AF_INET),
   type_(SOCK_STREAM),
   protocol_(0),
-  close_on_delete_(true)
+  close_on_delete_(true),
+  is_alive_(false)
 {
     // Create a UDT socket
     descriptor_ = UDT::socket(addr_family_, type_, protocol_);
@@ -59,7 +95,20 @@ Socket::Socket()
 
     PYUDT_LOG_TRACE("Created UDT socket " << descriptor_);
 
-    // TODO: set default socket options
+    // Set default socket options
+    bool blocking_send = false;
+    bool blocking_recv = true;
+    if (UDT::ERROR == UDT::setsockopt(descriptor_, 0, UDT_SNDSYN,
+                                      &blocking_send, sizeof(blocking_send))
+     || UDT::ERROR == UDT::setsockopt(descriptor_, 0, UDT_RCVSYN,
+                                      &blocking_recv, sizeof(blocking_recv))
+       )
+    {
+        translateUDTError();
+        return;
+    }
+
+    PYUDT_LOG_TRACE("Set default options for UDT socket " << descriptor_);
 }
 
 
@@ -68,12 +117,32 @@ Socket::Socket(UDTSOCKET descriptor, bool close_on_delete)
   addr_family_(0),
   type_(0),
   protocol_(0),
-  close_on_delete_(close_on_delete)
+  close_on_delete_(close_on_delete),
+  is_alive_(true)
 {
+    PYUDT_LOG_TRACE("Created Socket object from existing socket " << descriptor_);
+
+    PYUDT_LOG_TRACE("Setting options for UDT socket " << descriptor_);
+
     // TODO: find a way to get the address family, type and protocol from an
     //       existing UDT socket.
+    addr_family_ = AF_INET;
+    type_ = SOCK_STREAM;
 
-    PYUDT_LOG_TRACE("Create Socket object from existing socket " << descriptor_);
+    // Set default socket options
+    bool blocking_send = false;
+    bool blocking_recv = true;
+    if (UDT::ERROR == UDT::setsockopt(descriptor_, 0, UDT_SNDSYN,
+                                      &blocking_send, sizeof(blocking_send))
+     || UDT::ERROR == UDT::setsockopt(descriptor_, 0, UDT_RCVSYN,
+                                      &blocking_recv, sizeof(blocking_recv))
+       )
+    {
+        translateUDTError();
+        return;
+    }
+
+    PYUDT_LOG_TRACE("Default options set for UDT socket " << descriptor_);
 }
 
 
@@ -82,9 +151,19 @@ Socket::~Socket()
     // TODO: make sure that the socket is no longer referenced in an epoll
 
     // Close socket on destruction
-    if (close_on_delete_)
+    if (close_on_delete_) close();
+
+    PYUDT_LOG_TRACE("Destroyed UDT socket " << descriptor_);
+}
+
+
+void Socket::close()
+{
+    int res;
+
+    if (is_alive_)
     {
-        int res = UDT::close(descriptor_);
+        res = UDT::close(descriptor_);
 
         // FIXME: currently ignore invalid socket errors
         // This happens when the socket destructor is called after the epoll
@@ -96,9 +175,9 @@ Socket::~Socket()
             return;
         }
         else PYUDT_LOG_TRACE("Closed UDT socket " << descriptor_);
-    }
 
-    PYUDT_LOG_TRACE("Destroyed UDT socket " << descriptor_);
+        is_alive_ = false;
+    }
 }
 
 
@@ -165,12 +244,12 @@ void Socket::setCloseOnDelete(bool close_on_delete)
 std::string Socket::str() const
 {
     std::stringstream ss;
-    ss << "--------------" << std::endl
-       << "Socket:       " << descriptor_  << std::endl
-       << "Addr family:  " << addr_family_ << std::endl
-       << "Type:         " << type_        << std::endl
-       << "Protocol:     " << protocol_    << std::endl
-       << "--------------" << std::endl;
+    ss << "---------------------------\n"
+       << "Socket:       " << descriptor_                        << '\n'
+       << "Addr family:  " << detail::af_to_string(addr_family_) << '\n'
+       << "Type:         " << detail::type_to_string(type_)      << '\n'
+       << "Alive:        " << ((is_alive_)? "True":"False")      << '\n'
+       << "---------------------------";
     return ss.str();
 }
 
@@ -194,6 +273,7 @@ void Socket::recv(char* buf, int buf_len) const throw()
 
     if (res == UDT::ERROR)
     {
+        PYUDT_LOG_ERROR("Could not receive data from socket " << descriptor_);
         translateUDTError();
         return;
     }
@@ -220,6 +300,7 @@ py::str Socket::recv(int buf_len) const throw()
     if (res == UDT::ERROR)
     {
         free(buf);
+        PYUDT_LOG_ERROR("Could not receive data from socket " << descriptor_);
         translateUDTError();
 
         // None
@@ -234,6 +315,11 @@ py::str Socket::recv(int buf_len) const throw()
                     << static_cast<void *>(&buf));
 
     return py_buf;
+}
+
+void Socket::send(std::string str) const throw()
+{
+    send(str.c_str(), (int)((str.size()) * sizeof(char)));
 }
 
 
@@ -253,11 +339,12 @@ void Socket::send(const char* buf, int buf_len) const throw()
 
     if (res == UDT::ERROR)
     {
+        PYUDT_LOG_ERROR("Could not send data through socket " << descriptor_);
         translateUDTError();
         return;
     }
 
-    PYUDT_LOG_TRACE("Sent " << buf_len << " byte(s) from socket "
+    PYUDT_LOG_TRACE("Sent " << buf_len << " byte(s) through socket "
                     << descriptor_ << " that were stored in "
                     << static_cast<void *>(&buf));
 }
@@ -307,11 +394,12 @@ void Socket::send(py::object py_buf) const throw()
 
     if (res == UDT::ERROR)
     {
+        PYUDT_LOG_ERROR("Could not send data through socket " << descriptor_);
         translateUDTError();
         return;
     }
 
-    PYUDT_LOG_TRACE("Sent " << buf_len << " byte(s) from socket "
+    PYUDT_LOG_TRACE("Sent " << buf_len << " byte(s) through socket "
                     << descriptor_ << " that were stored in "
                     << static_cast<void *>(&buf));
 }
@@ -329,6 +417,7 @@ void Socket::bind(const char* ip, uint16_t port) throw()
         return;
     }
 
+    is_alive_ = true;
     PYUDT_LOG_TRACE("Bound socket " << descriptor_ << " to address "
                     << ip << ":" << port);
 }
@@ -342,6 +431,7 @@ void Socket::bind_to_udp(UDPSOCKET udp_socket) throw()
         return;
     }
 
+    is_alive_ = true;
     PYUDT_LOG_TRACE("Bound UDT socket " << descriptor_
                     << " to UDP socket " << udp_socket);
 }
@@ -371,30 +461,65 @@ void Socket::connect(const char* ip, uint16_t port) throw()
         return;
     }
 
+    is_alive_ = true;
     PYUDT_LOG_TRACE("Connect socket " << descriptor_ << " to address "
                     << ip << ":" << port);
 }
 
 
-Socket* Socket::accept() throw()
+boost::tuple<Socket_ptr,const char*,uint16_t> Socket::accept() throw()
 {
+    PYUDT_LOG_TRACE("Accepting connection to socket " << descriptor_ << "...");
+
     // Parameters of the incoming connection
-    sockaddr addr;
-    int addrlen;
+    sockaddr_in client_addr;
+    int client_addrlen;
+    UDTSOCKET client_descriptor;
 
     // Retrieve an incoming connection
-    UDTSOCKET client = UDT::accept(descriptor_, &addr, &addrlen);
+    Py_BEGIN_ALLOW_THREADS;
+    client_descriptor = UDT::accept(descriptor_,
+                                    (sockaddr*)&client_addr,
+                                    &client_addrlen);
+    Py_END_ALLOW_THREADS;
 
-    if (client == UDT::ERROR)
+    if (client_descriptor == UDT::ERROR)
     {
         translateUDTError();
-        return NULL;
+        return boost::tuple<Socket_ptr,const char*,uint16_t>
+               (Socket_ptr(), "", 0);
     }
 
-    PYUDT_LOG_TRACE("Accept connection to socket " << descriptor_
-                    << " from address " << addr.sa_data);
+    Socket_ptr client = std::make_shared<Socket>(client_descriptor);
 
-    return new Socket(client);
+    client->descriptor_  = client_descriptor;
+    client->addr_family_ = addr_family_;
+    client->type_        = type_;
+    client->protocol_    = protocol_;
+    client->is_alive_    = true;
+
+    char client_host[NI_MAXHOST];
+    char client_srvc[NI_MAXSERV];
+
+    memset(client_host, '\0', sizeof(client_host));
+    memset(client_srvc, '\0', sizeof(client_srvc));
+
+    // Get the client hostname
+    if (getnameinfo((sockaddr*) &client_addr, client_addrlen,
+                                 client_host, sizeof(client_host) ,
+                                 client_srvc, sizeof(client_srvc) ,
+                                 NI_NUMERICHOST | NI_NUMERICSERV))
+    {
+        PYUDT_LOG_ERROR("Failed to get the client host info");
+    }
+
+
+    PYUDT_LOG_TRACE("Accepted connection to socket " << descriptor_
+                    << " from address " << client_host);
+
+    return boost::tuple<Socket_ptr,const char*, uint16_t>
+           (std::make_shared<Socket>(client->getDescriptor()),
+            client_host, client_addr.sin_port);
 }
 
 } // namespace pyudt4

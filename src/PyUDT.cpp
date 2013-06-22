@@ -1,4 +1,6 @@
 #include <boost/python.hpp>
+#include <memory> // std::shared_ptr
+#include <signal.h>
 
 #include "Epoll.hh"
 #include "Socket.hh"
@@ -9,20 +11,6 @@ using namespace boost::python;
 using namespace pyudt4;
 
 namespace pyudt4 {
-
-/**
- * Initialize the UDT library.
- */
-static void udt_startup()
-{
-    PYUDT_LOG_TRACE("Initializing UDT...");
-    if (UDT::ERROR == UDT::startup())
-    {
-        translateUDTError();
-        return;
-    }
-    PYUDT_LOG_TRACE("UDT initialized!");
-}
 
 /**
  * Release the UDT library.
@@ -38,6 +26,124 @@ static void udt_cleanup()
     PYUDT_LOG_TRACE("UDT released!");
 }
 
+
+/**
+ * Signal handler that provides a way to clean UDT when signals are caught.
+ */
+static void signal_handler(int sig)
+{
+    bool is_handled = false;
+
+    switch (sig)
+    {
+    case SIGINT:
+        PYUDT_LOG_ERROR("Caught SIGINT.");
+        is_handled = true;
+        break;
+
+    case SIGTERM:
+        PYUDT_LOG_ERROR("Caught SIGTERM.");
+        is_handled = true;
+        break;
+
+    default:
+        // Unhandled signal, doing nothing
+        break;
+    }
+
+    if (is_handled)
+    {
+        // Cleaning UDT, hoping that this call will not hang...
+        udt_cleanup();
+        exit(sig);
+    }
+}
+
+
+/**
+ * Handle system signals to call the proper cleaning functions.
+ */
+static void handle_signals()
+{
+    if (signal(SIGINT, signal_handler) == SIG_ERR)
+        PYUDT_LOG_ERROR("Cannot catch SIGINT.");
+    if (signal(SIGTERM, signal_handler) == SIG_ERR)
+        PYUDT_LOG_ERROR("Cannot catch SIGTERM.");
+
+    PYUDT_LOG_TRACE("Signal handler set.");
+}
+
+
+/**
+ * Initialize the UDT library.
+ */
+static void udt_startup()
+{
+    PYUDT_LOG_TRACE("Initializing UDT...");
+    if (UDT::ERROR == UDT::startup())
+    {
+        translateUDTError();
+        return;
+    }
+    PYUDT_LOG_TRACE("UDT initialized!");
+
+    // Also set a signal handler, to clean UDT if things go awry
+    handle_signals();
+}
+
+
+namespace detail {
+
+/**
+ * Based on the solution provided by Luc Bourhis.
+ * @See: http://cci.lbl.gov/cctbx_sources/boost_adaptbx/tuple_conversion.h
+ */
+template <class T>
+struct to_python
+{
+    template <class Head, class Tail>
+    static inline
+    py::tuple type_to_python(boost::tuples::cons<Head,Tail> const& x)
+    {
+        py::tuple head = py::make_tuple(x.get_head());
+        py::tuple tail = type_to_python(x.get_tail());
+        return py::tuple(head + tail);
+    }
+
+    static inline
+    py::tuple type_to_python(boost::tuples::null_type)
+    {
+        return py::tuple();
+    }
+
+    template <class U>
+    static inline
+    py::object type_to_python(std::shared_ptr<U> const& x)
+    {
+        return py::object(x.get());
+    }
+
+    static
+    PyObject* convert(T const& x)
+    {
+        return py::incref(type_to_python(x).ptr());
+    }
+};
+
+} // namespace detail
+
+/**
+ * Template tuple converter to Python.
+ */
+template<class T>
+struct to_python
+{
+    to_python()
+    {
+        boost::python::to_python_converter<T, detail::to_python<T> >();
+    }
+};
+
 } // namespace pyudt4
 
 
@@ -46,15 +152,21 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(epoll_wait, Epoll::wait, 1, 5)
 
 BOOST_PYTHON_MODULE(pyudt)
 {
+    // CONVERTERS
+
+    to_python<boost::tuple<Socket_ptr,const char*, uint16_t> >();
+    to_python<Socket_ptr>();
+
     // SOCKET
 
     // Member function pointer variables
     void   (Socket::*socket_send)     (const char*, int) const = &Socket::send;
     void   (Socket::*socket_send_py)  (object)           const = &Socket::send;
+    void   (Socket::*socket_send_str) (std::string)      const = &Socket::send;
     void   (Socket::*socket_recv)     (char*, int)       const = &Socket::recv;
     str    (Socket::*socket_recv_obj) (int)              const = &Socket::recv;
 
-    class_<Socket>("Socket", init<>())
+    class_<Socket, std::shared_ptr<Socket> >("Socket", init<>())
     .def(init<UDTSOCKET,bool>())
     .def("descriptor", &Socket::setDescriptor)
     .def("descriptor", &Socket::getDescriptor, return_value_policy<copy_const_reference>())
@@ -66,16 +178,18 @@ BOOST_PYTHON_MODULE(pyudt)
     .def("protocol", &Socket::getProtocol, return_value_policy<copy_const_reference>())
     .def("close_on_delete", &Socket::setCloseOnDelete)
     .def("close_on_delete", &Socket::getCloseOnDelete, return_value_policy<copy_const_reference>())
+    .def("close", &Socket::close)
     .def("__str__", &Socket::str)
     .def("send", socket_send)
     .def("send", socket_send_py)
+    .def("send", socket_send_str)
     .def("recv", socket_recv)
     .def("recv", socket_recv_obj)
     .def("bind", &Socket::bind)
     .def("bind_to_udp", &Socket::bind_to_udp)
     .def("listen", &Socket::listen)
     .def("connect", &Socket::connect)
-    .def("accept", &Socket::accept, return_value_policy<manage_new_object>())
+    .def("accept", &Socket::accept)
     ;
 
     // EPOLL
@@ -100,6 +214,14 @@ BOOST_PYTHON_MODULE(pyudt)
          epoll_wait(args("ms_timeout", "do_uread", "do_uwrite",
                                        "do_sread", "do_swrite"),
                     "Wait for an epoll event. A timeout can be set."))
+    ;
+
+    // Enums
+    enum_<EPOLLOpt>("EPOLLOpt")
+    .value("UDT_EPOLL_IN", UDT_EPOLL_IN)
+    .value("UDT_EPOLL_OUT", UDT_EPOLL_OUT)
+    .value("UDT_EPOLL_ERR", UDT_EPOLL_ERR)
+    .export_values()
     ;
 
     // EXCEPTION

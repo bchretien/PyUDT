@@ -14,25 +14,31 @@ namespace pyudt4 {
 
 Epoll::Epoll()
 {
+    PYUDT_LOG_TRACE("Creating an epoll...");
+
     // Create the epoll
     id_ = UDT::epoll_create();
-
-    PYUDT_LOG_TRACE("Created epoll " << id_);
 
     // Catch a possible error
     if (id_ < 0)
     {
+        PYUDT_LOG_ERROR("Could not create an epoll");
         translateUDTError();
         return;
     }
+
+    PYUDT_LOG_TRACE("Created epoll " << id_);
 }
 
 
 Epoll::~Epoll()
 {
+    PYUDT_LOG_TRACE("Releasing epoll " << id_ << "...");
+
     // Release the epoll
     if (UDT::epoll_release(id_) < 0)
     {
+        PYUDT_LOG_ERROR("Could not release epoll " << id_);
         translateUDTError();
         return;
     }
@@ -74,6 +80,10 @@ void Epoll::add_usock(py::object py_socket) throw()
 
         if (UDT::ERROR == UDT::epoll_add_usock(id_, socket->getDescriptor()))
         {
+            PYUDT_LOG_ERROR("Could not add UDT socket "
+                            << socket->getDescriptor()
+                            << " to epoll " << id_);
+
             translateUDTError();
             return;
         }
@@ -113,6 +123,10 @@ void Epoll::add_usock(py::object py_socket, py::object py_flags) throw()
 
         if (UDT::ERROR == UDT::epoll_add_usock(id_, socket->getDescriptor(), &flags))
         {
+            PYUDT_LOG_ERROR("Could not add UDT socket "
+                            << socket->getDescriptor()
+                            << " to epoll " << id_);
+
             translateUDTError();
             return;
         }
@@ -125,7 +139,8 @@ void Epoll::add_usock(py::object py_socket, py::object py_flags) throw()
 
     PYUDT_LOG_TRACE("Added UDT socket "
                     << socket->getDescriptor()
-                    << " to epoll " << id_);
+                    << " to epoll " << id_
+                    << " with flag " << flags);
 }
 
 
@@ -150,6 +165,10 @@ void Epoll::remove_usock(py::object py_socket) throw()
 
         if (UDT::ERROR == UDT::epoll_remove_usock(id_, socket->getDescriptor()))
         {
+            PYUDT_LOG_ERROR("Could not remove UDT socket "
+                            << socket->getDescriptor()
+                            << " from epoll " << id_);
+
             translateUDTError();
             return;
         }
@@ -186,6 +205,9 @@ void Epoll::add_ssock(py::object py_socket) throw()
 
         if (UDT::ERROR == UDT::epoll_add_ssock(id_, socket))
         {
+            PYUDT_LOG_ERROR("Could not add system socket "
+                            << socket << " to epoll " << id_);
+
             translateUDTError();
             return;
         }
@@ -224,6 +246,9 @@ void Epoll::add_ssock(py::object py_socket, py::object py_flags) throw()
 
         if (UDT::ERROR == UDT::epoll_add_ssock(id_, socket, &flags))
         {
+            PYUDT_LOG_ERROR("Could not add system socket "
+                            << socket << " to epoll " << id_);
+
             translateUDTError();
             return;
         }
@@ -259,6 +284,9 @@ void Epoll::remove_ssock(py::object py_socket) throw()
 
         if (UDT::ERROR == UDT::epoll_remove_ssock(id_, socket))
         {
+            PYUDT_LOG_ERROR("Could not remove system socket "
+                            << socket << " from epoll " << id_);
+
             translateUDTError();
             return;
         }
