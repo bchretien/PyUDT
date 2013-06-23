@@ -27,11 +27,11 @@ export PYTHONPATH="~/virtualenv/python$PYTHON_VERSION/lib/python$PYTHON_VERSION/
 # Build package
 echo "Building UDT..."
 
-# move library and headers to appropriate location 
+# move library and headers to appropriate location
 cd ${root_dir}/udt/udt4
 
 echo "Installing package files..."
-make -j1                               
+make -j1
 cp src/libudt.so ${install_dir}/lib/
 cp src/udt.h ${install_dir}/include/udt/udt.h
 
@@ -43,6 +43,6 @@ echo "Installing PyUDT..." \
 python ${root_dir}/setup.py install --prefix="~/virtualenv/python$PYTHON_VERSION"
 
 echo "Running tests..."
-cd example
-./run_tests.sh
+cd test
+./run_tests.py -v
 cd ..
