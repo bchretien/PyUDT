@@ -1,4 +1,4 @@
-set(currentFolder "src")
+set(currentFolder "package/udt4_ext/src")
 
 set(PYUDT_SOURCE
 ${PYUDT_SOURCE}

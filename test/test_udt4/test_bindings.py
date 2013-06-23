@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
 import pyudt
-
 from threading import Thread
 import time
-
-import os, sys
-sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 test_data='word'
 test_data_len=len(test_data)

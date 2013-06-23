@@ -154,7 +154,7 @@ struct to_python
 // Member function overloads
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(epoll_wait, Epoll::wait, 1, 5)
 
-BOOST_PYTHON_MODULE(pyudt)
+BOOST_PYTHON_MODULE(udt4_ext)
 {
     // CONVERTERS
 

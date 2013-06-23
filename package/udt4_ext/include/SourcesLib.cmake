@@ -1,4 +1,4 @@
-set(currentFolder "include")
+set(currentFolder "package/udt4_ext/include")
 
 set(PYUDT_HEADERS
 ${PYUDT_HEADERS}

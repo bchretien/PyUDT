@@ -40,40 +40,66 @@
 #   -----------------------------------------------------------------------
 #
 
-VERSION = { 'major' : 0
-          , 'minor' : 6
-          , 'patch' : 0 }
+from setuptools import setup, find_packages, Extension, Library
 
-from setuptools import setup, Extension
+from glob import glob
+import sys
+import os
+import os.path as op
+import distutils.spawn as ds
+import distutils.dir_util as dd
 
-udt4 = Extension(
-        '_udt4',
-        sources         = [ 'src/py-udt4.cc',
-                            'src/py-udt4-epoll.cc',
-                            'src/py-udt4-socket.cc' ],
-        include_dirs    = ['/usr/local/include', '/usr/include/'],
-        libraries       = ['udt', 'pthread'],
-        library_dirs    = ['/usr/local/lib', '/usr/lib64/', '/usr/lib/'],
-        define_macros   = [ ('NDEBUG', 1),
-                            ('MAJOR_VERSION', VERSION['major']),
-                            ('MINOR_VERSION', VERSION['minor'])
-                          ]
-        )
+try:
+    import config as C
+except ImportError: # no config.py file found
+    if ds.find_executable('cmake') is None:
+        print "Error: unable to configure PyUDT!"
+        print
+        print "Starting from version 0.7.0, PyUDT relies on the CMake build"
+        print "tool (http://www.cmake.org/) to configure. However, CMake is not"
+        print "found in your system. Please install CMake before running the"
+        print "setup file."
+        print
+        print "Once CMake is installed, you can also manually configure PyUDT"
+        print "by running the following commands:"
+        print "    mkdir build"
+        print "    cd build"
+        print "    cmake .. -DPythonLibs_FIND_VERSION=2.7 "
+        print "    cd .."
+        sys.exit(-1)
+
+    print "Configuring PyUDT via CMake..."
+    cur_dir = os.getcwd()
+    new_dir = op.join(op.split(__file__)[0], 'build')
+    dd.mkpath(new_dir)
+    os.chdir(new_dir)
+    try:
+        ds.spawn(['cmake', '..', '-DPythonLibs_FIND_VERSION=2.7'])
+    except ds.DistutilsExecError:
+        print "Error: error occurred while running CMake to configure PyUDT."
+        print "You may want to manually configure PyUDT by running CMake's"
+        print "tools:"
+        print "    mkdir build"
+        print "    cd build"
+        print "    cmake .. -DPythonLibs_FIND_VERSION=2.7 "
+        print "    cd .."
+        sys.exit(-1)
+    os.chdir(cur_dir)
+    import config as C
 
 setup(
-        name            = 'pyudt4',
-        version         = '%(major)i.%(minor)i.%(patch)s' % VERSION,
-        description     = 'Python bindings for UDT4',
+        name            = 'pyudt',
+        version         = C.PYUDT_VERSION,
+        description     = 'Python bindings for UDT',
         author          = 'Christopher J. Hanks',
         author_email    = 'develop@cjhanks.name',
         url             = 'http://cjhanks.name/projects/py-udt.php',
-        packages        = ['udt4'],
-        package_dir     = { '' : 'lib' },
-        ext_modules     = [udt4],
+        packages        = find_packages('package'),
+        package_dir     = { '' : 'package' },
+        ext_modules     = C.extension_list,
         license         = 'GPLv3',
         download_url    = 'https://github.com/cjhanks/PyUDT',
         keywords        = ['udt', 'pyudt', 'udt4'],
-        bugtrack_url    = 'https://github.com/cjhanks/PyUDT/issues',
         classifiers     = [
             'Development Status :: 3 - Alpha',
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',

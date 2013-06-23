@@ -16,3 +16,7 @@
 *.pyc
 *.pyo
 *.swp
+
+# Project specific files
+config.py
+build/*
