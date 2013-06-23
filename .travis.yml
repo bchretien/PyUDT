@@ -2,6 +2,16 @@ language: python
 python:
   - "2.7"
 script: "./.travis.build.sh"
+before_install:
+  - git submodule update --init --recursive
+# libstdc++-4.7-dev / gcc 4.7
+  - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install gcc-4.7 g++-4.7
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.6 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.6
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.7
+# install the rest
+  - sudo apt-get install -qq doxygen doxygen-latex libboost-all-dev liblog4cxx10-dev
 branches:
   only:
     - master

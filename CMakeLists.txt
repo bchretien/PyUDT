@@ -14,8 +14,8 @@ SET(PYUDT_VERSION "${PYUDT_VERSION_MAJOR}.${PYUDT_VERSION_MINOR}.${PYUDT_VERSION
 # Disable strong error checking
 #SET(CXX_DISABLE_WERROR 1)
 
-# Using C++11 and solve linker issues
-LIST(APPEND CMAKE_CXX_FLAGS "-std=c++11")
+# Using C++11
+SET(CMAKE_CXX_FLAGS "-std=c++11")
 
 INCLUDE(cmake/base.cmake)
 INCLUDE(cmake/boost.cmake)
