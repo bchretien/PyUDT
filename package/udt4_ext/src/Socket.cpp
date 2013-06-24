@@ -6,7 +6,6 @@
 #include <arpa/inet.h> // inet_pton
 #include <netdb.h> // getnameinfo
 #include <boost/tuple/tuple.hpp>
-#include <memory> // std::shared_ptr
 
 #include "Exception.hh"
 #include "Debug.hh"
@@ -493,7 +492,7 @@ boost::tuple<Socket_ptr,const char*,uint16_t> Socket::accept() throw()
                (Socket_ptr(), "", 0);
     }
 
-    Socket_ptr client = std::make_shared<Socket>(client_descriptor);
+    Socket_ptr client = make_shared<Socket>(client_descriptor);
 
     client->descriptor_  = client_descriptor;
     client->addr_family_ = addr_family_;
@@ -521,7 +520,7 @@ boost::tuple<Socket_ptr,const char*,uint16_t> Socket::accept() throw()
                     << " from address " << client_host);
 
     return boost::tuple<Socket_ptr,const char*, uint16_t>
-           (std::make_shared<Socket>(client->getDescriptor()),
+           (make_shared<Socket>(client->getDescriptor()),
             client_host, client_addr.sin_port);
 }
 

@@ -1,7 +1,7 @@
 #include <boost/python.hpp>
-#include <memory> // std::shared_ptr
 #include <signal.h>
 
+#include "Memory.hh"
 #include "Epoll.hh"
 #include "Socket.hh"
 #include "Exception.hh"
@@ -122,7 +122,7 @@ struct to_python
 
     template <class U>
     static inline
-    py::object type_to_python(std::shared_ptr<U> const& x)
+    py::object type_to_python(shared_ptr<U> const& x)
     {
         return py::object(x.get());
     }
@@ -169,7 +169,7 @@ BOOST_PYTHON_MODULE(udt4_ext)
     void   (Socket::*socket_recv)     (char*, int)       const = &Socket::recv;
     str    (Socket::*socket_recv_obj) (int)              const = &Socket::recv;
 
-    class_<Socket, std::shared_ptr<Socket> >("Socket", init<>())
+    class_<Socket, shared_ptr<Socket> >("Socket", init<>())
     .def(init<UDTSOCKET,bool>())
     .def("descriptor", &Socket::setDescriptor)
     .def("descriptor", &Socket::getDescriptor, return_value_policy<copy_const_reference>())

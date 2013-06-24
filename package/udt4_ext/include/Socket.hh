@@ -6,7 +6,8 @@
 #include <string>
 #include <udt/udt.h>
 #include <map>
-#include <memory> // std::shared_ptr
+
+#include "Memory.hh"
 
 namespace py = boost::python;
 
@@ -16,7 +17,7 @@ namespace pyudt4 {
 class Socket;
 
 // For simplicity
-typedef std::shared_ptr<Socket> Socket_ptr;
+typedef shared_ptr<Socket> Socket_ptr;
 
 /**
  * C++ wrapper for a UDT socket.

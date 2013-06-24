@@ -22,9 +22,15 @@ export LD_LIBRARY_PATH="$install_dir/lib:$LD_LIBRARY_PATH"
 export PKG_CONFIG_PATH="$install_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
 export CFLAGS="-I$install_dir/include -L$install_dir/lib"
 export CXXFLAGS="-I$install_dir/include -L$install_dir/lib"
-export PYTHONPATH="~/virtualenv/python$PYTHON_VERSION/lib/python$PYTHON_VERSION/site-packages"
+export PYTHONPATH="~/virtualenv/python$PYTHON_VERSION/lib/python$PYTHON_VERSION/site-packages:$PYTHONPATH"
 
-echo "gcc version: "
+pythonsite_dir=`python -c "import sys, os; print os.sep.join(['lib', 'python' + sys.version[:3], 'site-packages'])"`
+export PYTHONPATH="$install_dir/$pythonsite_dir:$PYTHON_PATH"
+
+echo "Environment variables..."
+env
+
+echo "g++ version: "
 g++ --version
 
 # Build package
@@ -43,9 +49,9 @@ cd ../..
 echo "Calling setup.py..."
 python ${root_dir}/setup.py build
 echo "Installing PyUDT..." \
-python ${root_dir}/setup.py install --prefix="~/virtualenv/python$PYTHON_VERSION"
+python ${root_dir}/setup.py install
+
+ls -R ${root_dir}/build
 
 echo "Running tests..."
-cd test
-./run_tests.py -v
-cd ..
+./test/run_tests.py -v
