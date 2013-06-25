@@ -64,7 +64,7 @@ except ImportError: # no config.py file found
         print "by running the following commands:"
         print "    mkdir build"
         print "    cd build"
-        print "    cmake .. -DPythonLibs_FIND_VERSION=2.7 "
+        print "    cmake .. -DPythonInterp_FIND_VERSION=2.7 -DPythonLibs_FIND_VERSION=2.7"
         print "    cd .."
         sys.exit(-1)
 
@@ -74,14 +74,14 @@ except ImportError: # no config.py file found
     dd.mkpath(new_dir)
     os.chdir(new_dir)
     try:
-        ds.spawn(['cmake', '..', '-DPythonLibs_FIND_VERSION=2.7'])
+        ds.spawn(['cmake', '..', '-DPythonInterp_FIND_VERSION=2.7', '-DPythonLibs_FIND_VERSION=2.7'])
     except ds.DistutilsExecError:
         print "Error: error occurred while running CMake to configure PyUDT."
         print "You may want to manually configure PyUDT by running CMake's"
         print "tools:"
         print "    mkdir build"
         print "    cd build"
-        print "    cmake .. -DPythonLibs_FIND_VERSION=2.7 "
+        print "    cmake .. -DPythonInterp_FIND_VERSION=2.7 -DPythonLibs_FIND_VERSION=2.7"
         print "    cd .."
         sys.exit(-1)
     os.chdir(cur_dir)
