@@ -48,6 +48,11 @@ import os
 import os.path as op
 import distutils.spawn as ds
 import distutils.dir_util as dd
+import sys
+
+version = "%i.%i" % (sys.version_info[0],sys.version_info[1])
+python_interp_flag = '-DPythonInterp_FIND_VERSION=%s' % (version)
+python_libs_flag = '-DPythonLibs_FIND_VERSION=%s' % (version)
 
 try:
     import config as C
@@ -64,7 +69,7 @@ except ImportError: # no config.py file found
         print "by running the following commands:"
         print "    mkdir build"
         print "    cd build"
-        print "    cmake .. -DPythonInterp_FIND_VERSION=2.7 -DPythonLibs_FIND_VERSION=2.7"
+        print "    cmake .. %s %s" % (python_interp_flag, python_libs_flag)
         print "    cd .."
         sys.exit(-1)
 
@@ -74,14 +79,14 @@ except ImportError: # no config.py file found
     dd.mkpath(new_dir)
     os.chdir(new_dir)
     try:
-        ds.spawn(['cmake', '..', '-DPythonInterp_FIND_VERSION=2.7', '-DPythonLibs_FIND_VERSION=2.7'])
+        ds.spawn(['cmake', '..', python_interp_flag, python_libs_flag])
     except ds.DistutilsExecError:
         print "Error: error occurred while running CMake to configure PyUDT."
         print "You may want to manually configure PyUDT by running CMake's"
         print "tools:"
         print "    mkdir build"
         print "    cd build"
-        print "    cmake .. -DPythonInterp_FIND_VERSION=2.7 -DPythonLibs_FIND_VERSION=2.7"
+        print "    cmake .. %s %s" % (python_interp_flag, python_libs_flag)
         print "    cd .."
         sys.exit(-1)
     os.chdir(cur_dir)
