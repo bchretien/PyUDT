@@ -206,7 +206,7 @@ FILE(APPEND config.py "]
 #  Installation
 # --------------
 
-INSTALL(FILES package/pyudt/__init__.py DESTINATION ${PYUDT_INSTALL_PATH})
+INSTALL(FILES package/pyudt/__init__.py package/pyudt/config.py DESTINATION ${PYUDT_INSTALL_PATH})
 
 ################################################################################
 
