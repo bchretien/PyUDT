@@ -65,6 +65,14 @@ class EpollTest(unittest.TestCase):
         except:
             self.fail('Error in Epoll.add_usock')
 
+    def add_usock_flags(self):
+        epoll = pyudt.Epoll()
+        socket = pyudt.Socket()
+        try:
+            epoll.add_usock(socket, pyudt.UDT_EPOLL_IN)
+        except:
+            self.fail('Error in Epoll.add_usock')
+
     def remove_usock(self):
         epoll = pyudt.Epoll()
         socket = pyudt.Socket()
@@ -78,7 +86,15 @@ class EpollTest(unittest.TestCase):
         epoll = pyudt.Epoll()
         socket = socklib.socket()
         try:
-            epoll.add_ssock(socket.fileno())
+            epoll.add_ssock(socket)
+        except:
+            self.fail('Error in Epoll.add_ssock')
+
+    def add_ssock_flags(self):
+        epoll = pyudt.Epoll()
+        socket = socklib.socket()
+        try:
+            epoll.add_ssock(socket, pyudt.UDT_EPOLL_IN)
         except:
             self.fail('Error in Epoll.add_ssock')
 
@@ -86,8 +102,8 @@ class EpollTest(unittest.TestCase):
         epoll = pyudt.Epoll()
         socket = socklib.socket()
         try:
-            epoll.add_ssock(socket.fileno())
-            epoll.remove_ssock(socket.fileno())
+            epoll.add_ssock(socket)
+            epoll.remove_ssock(socket)
         except:
             self.fail('Error in Epoll.remove_ssock')
 

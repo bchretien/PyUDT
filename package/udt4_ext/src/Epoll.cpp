@@ -187,20 +187,27 @@ void Epoll::remove_usock(py::object py_socket) throw()
 
 void Epoll::add_ssock(py::object py_socket) throw()
 {
-    // file descriptor of a system socket
+    // File descriptor of a system socket
     SYSSOCKET socket;
 
     try
     {
-        try
+        // First, try to extract a file descriptor
+        py::extract<SYSSOCKET> get_syssocket(py_socket);
+        if (get_syssocket.check()) socket = get_syssocket();
+        else
         {
-            socket = py::extract<SYSSOCKET>(py_socket);
-        }
-        catch (...)
-        {
-            Exception e("Wrong arguments: Epoll::add_ssock((SYSSOCKET)s)", "");
-            translateException(e);
-            throw e;
+            // Second, try to treat this as a Python TCP socket
+            try
+            {
+                socket = py::call_method<SYSSOCKET>(py_socket.ptr(), "fileno");
+            }
+            catch (...)
+            {
+                Exception e("Wrong arguments: Epoll::add_ssock((SYSSOCKET)s)", "");
+                translateException(e);
+                throw e;
+            }
         }
 
         if (UDT::ERROR == UDT::epoll_add_ssock(id_, socket))
@@ -226,22 +233,32 @@ void Epoll::add_ssock(py::object py_socket) throw()
 
 void Epoll::add_ssock(py::object py_socket, py::object py_flags) throw()
 {
-    // file descriptor of a system socket
+    // File descriptor of a system socket
     SYSSOCKET socket;
     int flags;
 
     try
     {
-        try
+        // Extract the flags
+        flags = py::extract<int>(py_flags);
+
+        // First, try to extract a file descriptor
+        py::extract<SYSSOCKET> get_syssocket(py_socket);
+        if (get_syssocket.check()) socket = get_syssocket();
+        else
         {
-            socket = py::extract<SYSSOCKET>(py_socket);
-            flags = py::extract<int>(py_flags);
-        }
-        catch (...)
-        {
-            Exception e("Wrong arguments: Epoll::add_ssock((SYSSOCKET)s, (int)flags)", "");
-            translateException(e);
-            throw e;
+            // Second, try to treat this as a Python TCP socket
+            try
+            {
+                socket = py::call_method<SYSSOCKET>(py_socket.ptr(), "fileno");
+            }
+            catch (...)
+            {
+                Exception e("Wrong arguments: Epoll::add_ssock((SYSSOCKET)s, "\
+                            "(int)flags)", "");
+                translateException(e);
+                throw e;
+            }
         }
 
         if (UDT::ERROR == UDT::epoll_add_ssock(id_, socket, &flags))
@@ -271,15 +288,20 @@ void Epoll::remove_ssock(py::object py_socket) throw()
 
     try
     {
-        try
+        py::extract<SYSSOCKET> get_syssocket(py_socket);
+        if (get_syssocket.check()) socket = get_syssocket();
+        else
         {
-            socket = py::extract<SYSSOCKET>(py_socket);
-        }
-        catch (...)
-        {
-            Exception e("Wrong arguments: Epoll::remove_ssock((SYSSOCKET)s)", "");
-            translateException(e);
-            throw e;
+            try
+            {
+                socket = py::call_method<SYSSOCKET>(py_socket.ptr(), "fileno");
+            }
+            catch (...)
+            {
+                Exception e("Wrong arguments: Epoll::remove_ssock((SYSSOCKET)s)", "");
+                translateException(e);
+                throw e;
+            }
         }
 
         if (UDT::ERROR == UDT::epoll_remove_ssock(id_, socket))

@@ -74,6 +74,9 @@ std::string parse_python_exception()
 
 void translateException(const Exception& e)
 {
+    // Log the error
+    PYUDT_LOG_ERROR(e.what());
+
     PyErr_SetString(PyExc_TypeError, e.what());
 }
 
@@ -87,9 +90,6 @@ void translateUDTError() throw()
 
     // Clear the error message from the error buffer
     UDT::getlasterror().clear();
-
-    // Log the error
-    PYUDT_LOG_ERROR(err_msg);
 
     // Raise an exception
     Exception e(err_msg, "");

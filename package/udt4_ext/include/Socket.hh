@@ -145,6 +145,12 @@ public:
     void bind(const char* ip, uint16_t port) throw();
 
     /**
+     * Bind a UDT socket to a known or an available local address.
+     * @param py_address Python tuple containing the address and the port.
+     */
+    void bind(boost::python::object py_address) throw();
+
+    /**
      * Bind to an existing UDP socket.
      * @param udp_socket UDP socket to bind to.
      */
@@ -159,15 +165,25 @@ public:
     /**
      * Connect to a server socket (in regular mode) or a peer socket
      * (in rendez-vous mode) to set up a UDT connection.
+     * @param ip IP address.
+     * @param port port.
      */
     void connect(const char* ip, uint16_t port) throw();
+
+    /**
+     * Connect to a server socket (in regular mode) or a peer socket
+     * (in rendez-vous mode) to set up a UDT connection.
+     * @param py_address Python tuple containing the address and the port.
+     */
+    void connect(boost::python::object py_address) throw();
 
     /**
      * Retrieve an incoming connection.
      * @return a tuple containing the socket of the incoming connection and its
      *  associated address/port.
      */
-    boost::tuple<Socket_ptr,const char*,uint16_t> accept() throw();
+    boost::tuple<Socket_ptr, boost::tuple<const char*,uint16_t> >
+    accept() throw();
 
 private:
     /**

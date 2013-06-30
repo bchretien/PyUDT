@@ -407,6 +407,27 @@ void Socket::send(py::object py_buf) const throw()
 }
 
 
+void Socket::bind(py::object py_address) throw()
+{
+    char* ip = 0x0;
+    uint16_t port = 0;
+
+    try
+    {
+        py::tuple addr_tuple = py::extract<py::tuple>(py_address);
+        ip = py::extract<char*>(addr_tuple[0]);
+        port = py::extract<uint16_t>(addr_tuple[1]);
+    }
+    catch (...)
+    {
+        Exception e("Wrong arguments: Socket::bind( (addr, port) )", "");
+        translateException(e);
+        throw e;
+    }
+
+    bind(ip, port);
+}
+
 void Socket::bind(const char* ip, uint16_t port) throw()
 {
     sockaddr_in addr = build_sockaddr_in(ip, port);
@@ -453,6 +474,28 @@ void Socket::listen(unsigned int backlog) throw()
 }
 
 
+void Socket::connect(py::object py_address) throw()
+{
+    char* ip = 0x0;
+    uint16_t port = 0;
+
+    try
+    {
+        py::tuple addr_tuple = py::extract<py::tuple>(py_address);
+        ip = py::extract<char*>(addr_tuple[0]);
+        port = py::extract<uint16_t>(addr_tuple[1]);
+    }
+    catch (...)
+    {
+        Exception e("Wrong arguments: Socket::connect( (addr, port) )", "");
+        translateException(e);
+        throw e;
+    }
+
+    connect(ip, port);
+}
+
+
 void Socket::connect(const char* ip, uint16_t port) throw()
 {
     sockaddr_in addr = build_sockaddr_in(ip, port);
@@ -469,7 +512,8 @@ void Socket::connect(const char* ip, uint16_t port) throw()
 }
 
 
-boost::tuple<Socket_ptr,const char*,uint16_t> Socket::accept() throw()
+boost::tuple<Socket_ptr, boost::tuple<const char*,uint16_t> >
+Socket::accept() throw()
 {
     PYUDT_LOG_TRACE("Accepting connection to socket " << descriptor_ << "...");
 
@@ -488,8 +532,8 @@ boost::tuple<Socket_ptr,const char*,uint16_t> Socket::accept() throw()
     if (client_descriptor == UDT::ERROR)
     {
         translateUDTError();
-        return boost::tuple<Socket_ptr,const char*,uint16_t>
-               (Socket_ptr(), "", 0);
+        return boost::tuple<Socket_ptr, boost::tuple<const char*,uint16_t> >
+               (Socket_ptr(), boost::tuple<const char*,uint16_t>("", 0));
     }
 
     Socket_ptr client = make_shared<Socket>(client_descriptor);
@@ -519,9 +563,10 @@ boost::tuple<Socket_ptr,const char*,uint16_t> Socket::accept() throw()
     PYUDT_LOG_TRACE("Accepted connection to socket " << descriptor_
                     << " from address " << client_host);
 
-    return boost::tuple<Socket_ptr,const char*, uint16_t>
+    return boost::tuple<Socket_ptr, boost::tuple<const char*, uint16_t> >
            (make_shared<Socket>(client->getDescriptor()),
-            client_host, client_addr.sin_port);
+            boost::tuple<const char*, uint16_t>
+            (client_host, client_addr.sin_port));
 }
 
 } // namespace pyudt4

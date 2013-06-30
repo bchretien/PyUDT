@@ -158,16 +158,21 @@ BOOST_PYTHON_MODULE(udt4_ext)
 {
     // CONVERTERS
 
-    to_python<boost::tuple<Socket_ptr,const char*, uint16_t> >();
+    to_python<boost::tuple<const char*, uint16_t> >();
+    to_python<boost::tuple<Socket_ptr, boost::tuple<const char*, uint16_t> > >();
 
     // SOCKET
 
     // Member function pointer variables
-    void   (Socket::*socket_send)     (const char*, int) const = &Socket::send;
-    void   (Socket::*socket_send_py)  (object)           const = &Socket::send;
-    void   (Socket::*socket_send_str) (std::string)      const = &Socket::send;
-    void   (Socket::*socket_recv)     (char*, int)       const = &Socket::recv;
-    str    (Socket::*socket_recv_obj) (int)              const = &Socket::recv;
+    void (Socket::*socket_send)     (const char*, int) const = &Socket::send;
+    void (Socket::*socket_send_py)  (object)           const = &Socket::send;
+    void (Socket::*socket_send_str) (std::string)      const = &Socket::send;
+    void (Socket::*socket_recv)     (char*, int)       const = &Socket::recv;
+    str  (Socket::*socket_recv_obj) (int)              const = &Socket::recv;
+    void (Socket::*socket_bind)     (const char*, uint16_t)  = &Socket::bind;
+    void (Socket::*socket_bind_obj) (object)                 = &Socket::bind;
+    void (Socket::*socket_connect)  (const char*, uint16_t)  = &Socket::connect;
+    void (Socket::*socket_connect_obj) (object)              = &Socket::connect;
 
     class_<Socket, shared_ptr<Socket> >("Socket", init<>())
     .def(init<UDTSOCKET,bool>())
@@ -188,10 +193,12 @@ BOOST_PYTHON_MODULE(udt4_ext)
     .def("send", socket_send_str)
     .def("recv", socket_recv)
     .def("recv", socket_recv_obj)
-    .def("bind", &Socket::bind)
+    .def("bind", socket_bind)
+    .def("bind", socket_bind_obj)
     .def("bind_to_udp", &Socket::bind_to_udp)
     .def("listen", &Socket::listen)
-    .def("connect", &Socket::connect)
+    .def("connect", socket_connect)
+    .def("connect", socket_connect_obj)
     .def("accept", &Socket::accept)
     ;
 
