@@ -30,7 +30,7 @@ def threaded_server():
     e = pyudt.Epoll()
 
     # Accept incoming connections
-    client,addr_ip,addr_port = s_server.accept()
+    client,addr = s_server.accept()
 
     # Add the client sockets to the epoll
     e.add_usock(client, pyudt.UDT_EPOLL_IN)
@@ -43,7 +43,7 @@ def threaded_server():
     print 'Received message: ' + str(test_data_rcv[0:test_data_len])
 
     # Garbage collect closed/broken sockets
-    #e.garbage_collect()
+    e.garbage_collect()
 
     # Remove client socket from epoll
     e.remove_usock(client)
