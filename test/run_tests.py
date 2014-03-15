@@ -40,11 +40,14 @@ class EpollTest(unittest.TestCase):
         self.creation()
         self.destruction()
         self.add_usock()
+        self.add_usock_flags()
         self.remove_usock()
         self.add_ssock()
+        self.add_ssock_flags()
         self.remove_ssock()
         self.get_id()
         self.garbage_collect()
+        self.get_read_udt()
 
     def creation(self):
         epoll = pyudt.Epoll()
@@ -117,6 +120,15 @@ class EpollTest(unittest.TestCase):
             epoll.garbage_collect()
         except:
             self.fail('Error in Epoll.garbage_collect')
+
+    def get_read_udt(self):
+        epoll = pyudt.Epoll()
+        socket = pyudt.Socket()
+        epoll.add_usock(socket)
+        try:
+            res = epoll.get_read_udt()
+        except:
+            self.fail('Error in Epoll.get_read_udt')
 
 # Run unit tests
 if __name__ == '__main__':

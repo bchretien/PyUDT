@@ -17,7 +17,7 @@ extern "C" {
 #endif 
 
 typedef struct __pyudt4_epoll_obj{
-        PyObject_HEAD;
+        PyObject_VAR_HEAD;
         
         /**  epoll id */
         int eid;        

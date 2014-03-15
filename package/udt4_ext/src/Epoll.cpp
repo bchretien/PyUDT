@@ -376,4 +376,28 @@ int Epoll::wait(int64_t ms_timeout,
     return res;
 }
 
+
+const std::set<UDTSOCKET> Epoll::get_read_udt() const
+{
+    return read_udt_;
+}
+
+
+const std::set<UDTSOCKET> Epoll::get_write_udt() const
+{
+    return write_udt_;
+}
+
+
+const std::set<SYSSOCKET> Epoll::get_read_tcp() const
+{
+    return read_sys_;
+}
+
+
+const std::set<SYSSOCKET> Epoll::get_write_tcp() const
+{
+    return write_sys_;
+}
+
 } // namespace pyudt4

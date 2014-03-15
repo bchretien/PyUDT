@@ -228,6 +228,19 @@ pyudt4_epoll_wait(pyudt4_epoll_obj *self, PyObject *args)
                                      sset.read, sset.write);
 }
                 
+static PyObject* 
+pyudt4_epoll_garbage_collect(pyudt4_epoll_obj *self)
+{
+        for (std::vector<UDTSOCKET>::iterator i = self->socks.begin();
+             i != self->socks.end(); ++i) {
+                if (UDT::getsockstate(*i) >= BROKEN) 
+                        UDT::epoll_remove_usock(self->eid, *i);
+        }
+
+        self->socks.clear();
+        
+        Py_RETURN_NONE;
+}
 
 static PyMethodDef pyudt4_epoll_methods[] = {
         {
@@ -314,6 +327,16 @@ static PyMethodDef pyudt4_epoll_methods[] = {
                 "               frozenset(write_udt_sockets),\n"
                 "               frozenset(write_sys_sockets),\n"
                 "               frozenset(write_sys_sockets))\n"
+        },
+        {
+                "garbage_collect",
+                (PyCFunction)pyudt4_epoll_garbage_collect,
+                METH_NOARGS, 
+                "The UDT epoll doesn't track closed UDP sockets (afaik)   \n"
+                "to alleviate the potential resource leak, all UDTSOCKET's\n"
+                "are tracked.  When you execute the garbage_collect, it   \n"
+                "will iterate the sockets and remove the UDTSOCKETS from  \n"
+                "the epoll which are known dead."
         },
         { 0x0 }
 };

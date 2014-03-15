@@ -122,6 +122,13 @@ struct to_python
 
     template <class U>
     static inline
+    py::tuple type_to_python(std::set<U> const& s)
+    {
+        return py::tuple(s);
+    }
+
+    template <class U>
+    static inline
     py::object type_to_python(shared_ptr<U> const& x)
     {
         return py::object(x.get());
@@ -160,6 +167,7 @@ BOOST_PYTHON_MODULE(udt4_ext)
 
     to_python<boost::tuple<const char*, uint16_t> >();
     to_python<boost::tuple<Socket_ptr, boost::tuple<const char*, uint16_t> > >();
+    to_python<std::set<int> >();
 
     // SOCKET
 
@@ -224,6 +232,10 @@ BOOST_PYTHON_MODULE(udt4_ext)
          epoll_wait(args("ms_timeout", "do_uread", "do_uwrite",
                                        "do_sread", "do_swrite"),
                     "Wait for an epoll event. A timeout can be set."))
+    .def("get_read_udt", &Epoll::get_read_udt)
+    .def("get_write_udt", &Epoll::get_write_udt)
+    .def("get_read_tcp", &Epoll::get_read_tcp)
+    .def("get_write_tcp", &Epoll::get_write_tcp)
     ;
 
     // Enums

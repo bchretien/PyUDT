@@ -90,6 +90,26 @@ public:
     int wait(int64_t ms_timeout, bool do_uread = true, bool do_uwrite = true,
              bool do_sread = false, bool do_swrite = false) throw ();
 
+    /**
+     * Get the UDT sockets available for reading.
+     */
+    const std::set<UDTSOCKET> get_read_udt() const;
+
+    /**
+     * Get the UDT sockets available for writing.
+     */
+    const std::set<UDTSOCKET> get_write_udt() const;
+
+    /**
+     * Get the TCP sockets available for reading.
+     */
+    const std::set<SYSSOCKET> get_read_tcp() const;
+
+    /**
+     * Get the TCP sockets available for writing.
+     */
+    const std::set<SYSSOCKET> get_write_tcp() const;
+
 private:
     /**
      * Epoll id.
