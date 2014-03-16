@@ -1,4 +1,6 @@
 #include <boost/python.hpp>
+#include <boost/foreach.hpp>
+
 #include <signal.h>
 
 #include "Memory.hh"
@@ -122,13 +124,6 @@ struct to_python
 
     template <class U>
     static inline
-    py::tuple type_to_python(std::set<U> const& s)
-    {
-        return py::tuple(s);
-    }
-
-    template <class U>
-    static inline
     py::object type_to_python(shared_ptr<U> const& x)
     {
         return py::object(x.get());
@@ -141,10 +136,26 @@ struct to_python
     }
 };
 
+/**
+ * C++ container (set, vector) to Python list.
+ */
+template<template<typename... U> class Container, class T>
+struct container_to_list
+{
+    // Inspired from:
+    // http://bazaar.launchpad.net/~yade-dev/yade/trunk/view/head:/py/wrapper/customConverters.cpp#L127
+    static PyObject* convert(const Container<T>& v)
+    {
+        py::list ret;
+        BOOST_FOREACH(const T& e, v) ret.append(e);
+        return incref(ret.ptr());
+    }
+};
+
 } // namespace detail
 
 /**
- * Template tuple converter to Python.
+ * Convert some Boost/C++ objects to Python.
  */
 template<class T>
 struct to_python
@@ -152,6 +163,19 @@ struct to_python
     to_python()
     {
         boost::python::to_python_converter<T, detail::to_python<T> >();
+    }
+};
+
+/**
+ * Convert C++ containers to Python lists.
+ */
+template<template<typename... U> class Container, class T>
+struct container_to_python
+{
+    container_to_python()
+    {
+        boost::python::to_python_converter<Container<T>,
+                                           detail::container_to_list<Container, T> >();
     }
 };
 
@@ -167,7 +191,8 @@ BOOST_PYTHON_MODULE(udt4_ext)
 
     to_python<boost::tuple<const char*, uint16_t> >();
     to_python<boost::tuple<Socket_ptr, boost::tuple<const char*, uint16_t> > >();
-    to_python<std::set<int> >();
+    container_to_python<std::vector, int>();
+    container_to_python<std::set, int>();
 
     // SOCKET
 
